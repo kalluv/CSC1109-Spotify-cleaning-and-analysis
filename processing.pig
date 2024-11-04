@@ -31,7 +31,7 @@ top_genre = foreach top_genre generate genre, avg_popularity;
 
 
 -- Dump the results
--- DUMP top_genre;
+DUMP top_genre;
 
 
 
@@ -57,4 +57,4 @@ ordered_artists = ORDER filtered_artists BY track_count DESC;
 top_10_artists = LIMIT ordered_artists 10;
 
 -- Dump the results
--- DUMP top_10_artists;
+DUMP top_10_artists;
