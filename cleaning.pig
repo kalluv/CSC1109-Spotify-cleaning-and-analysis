@@ -21,7 +21,7 @@ This cleaned tsv file will be saved in the outputs directory for use later on.
 
 
 -- 1. Load the Spotify dataset and check the structure.
-tracks = LOAD 'data/dataset.tsv' USING PigStorage('\t') AS (index:int, track_id:chararray, artists:chararray, album_name:chararray, track_name:chararray, popularity:int, duration_ms:int, explicit:chararray, danceability:float, energy:float, key:int, loudness:float, mode:int, speechiness:float, acousticness:float, instrumentalness:float, liveness:float, valence:float, tempo:float, time_signature:int, track_genre:chararray);
+tracks = LOAD 'CSC1109-Spotify-cleaning-and-analysis/data/dataset.tsv' USING PigStorage('\t') AS (index:int, track_id:chararray, artists:chararray, album_name:chararray, track_name:chararray, popularity:int, duration_ms:int, explicit:chararray, danceability:float, energy:float, key:int, loudness:float, mode:int, speechiness:float, acousticness:float, instrumentalness:float, liveness:float, valence:float, tempo:float, time_signature:int, track_genre:chararray);
 first_5_tracks = LIMIT tracks 5;
 -- DUMP first_5_tracks;
 -- Checking the first 5 rows of the dataset. 
@@ -75,6 +75,6 @@ count_unique_rows = foreach group_unique_rows generate COUNT(unique_rows.track_i
 -- After removing duplicates, there dataset has 113549 rows remaining.
 
 
-STORE unique_rows INTO 'outputs/clean_tracks' USING org.apache.pig.piggybank.storage.CSVExcelStorage();
+-- STORE unique_rows INTO 'CSC1109-Spotify-cleaning-and-analysis/outputs/clean_tracks' USING org.apache.pig.piggybank.storage.CSVExcelStorage();
 -- Store a csv file for later use. 
 
