@@ -72,7 +72,7 @@ group_unique_rows = GROUP unique_rows ALL;
 
 count_unique_rows = foreach group_unique_rows generate COUNT(unique_rows.track_id);
 -- DUMP count_unique_rows; 
--- After removing duplicates, there dataset has 113549 rows remaining.
+-- After removing duplicates, the dataset has 113549 rows remaining.
 
 
 -- STORE unique_rows INTO 'CSC1109-Spotify-cleaning-and-analysis/outputs/clean_tracks' USING org.apache.pig.piggybank.storage.CSVExcelStorage();
