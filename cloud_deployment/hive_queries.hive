@@ -1,0 +1,121 @@
+-- This file contains all of the Hive code used to query the data.
+
+-- Create the database/schema to create a table within.
+CREATE SCHEMA IF NOT EXISTS CSC1109;
+
+-- Specify the database to use.
+USE CSC1109;
+
+
+DROP TABLE IF EXISTS tracks;
+
+-- Create a table with the listed columns. Tab separated, collection items separated with |.
+CREATE TABLE tracks (track_id STRING, artists STRING, album_name STRING, track_name STRING, popularity INT, duration_ms INT, explicit BOOLEAN, danceability FLOAT, energy FLOAT, key INT, loudness FLOAT, mode INT, speechiness FLOAT, acousticness FLOAT, instrumentalness FLOAT, liveness FLOAT, valence FLOAT, tempo FLOAT, time_signature INT, track_genre STRING)
+
+COMMENT "Spotify tracks"
+ROW FORMAT SERDE 'org.apache.hadoop.hive.serde2.OpenCSVSerde'
+WITH SERDEPROPERTIES ("separatorChar" = ",", "quoteChar" = "\"")
+STORED AS TEXTFILE;
+
+
+LOAD DATA INPATH 'gs://csc1109/data/dataset.csv'
+INTO TABLE tracks;
+
+------------------------------------------------------------------------------------------------
+
+-- 1. Most Popular Genres Based on Average Popularity of Tracks
+
+
+-- INSERT OVERWRITE DIRECTORY 'CSC1109-Spotify-cleaning-and-analysis/outputs/most_popular_genres' 
+-- ROW FORMAT DELIMITED 
+-- FIELDS TERMINATED BY ','
+SELECT track_genre, AVG(popularity) AS max_popularity -- Select the genre of the track and the average popularity
+FROM tracks
+GROUP BY track_genre  -- Group the results by track genre
+HAVING COUNT(*) > 10  -- Filter the results to include only genres with more than 10 tracks
+ORDER BY max_popularity DESC
+LIMIT 10; -- Limit the output to the top 10 genres
+
+
+-- 2.  Top 10 Solo Artists with the Most Tracks
+
+
+-- INSERT OVERWRITE DIRECTORY 'CSC1109-Spotify-cleaning-and-analysis/outputs/solo_artists'
+-- ROW FORMAT DELIMITED
+-- FIELDS TERMINATED BY ','
+SELECT artists, COUNT(*) AS track_count -- Select the solo artist names and count the number of tracks for each artist
+FROM tracks
+WHERE artists NOT LIKE '%;%'  -- Exclude multiple artists -- Exclude artists with a semicolon in their names, indicating multiple artists
+GROUP BY artists
+HAVING COUNT(*) > 5 -- Filter the results to include only artists with more than 5 tracks
+ORDER BY track_count DESC
+LIMIT 10; 
+
+
+-- 3. Genres with the Largest Difference Between Explicit and Non-Explicit Track Popularity
+
+
+-- INSERT OVERWRITE DIRECTORY 'CSC1109-Spotify-cleaning-and-analysis/outputs/explicit_nonexplicit_diff_pop'
+-- ROW FORMAT DELIMITED
+-- FIELDS TERMINATED BY ','
+-- Select the track genre and calculate average popularity for explicit and non-explicit tracks
+SELECT track_genre,
+       -- Calculate average popularity for explicit tracks, using CASE to filter
+       AVG(CASE WHEN explicit = 'True' THEN popularity ELSE NULL END) AS avg_popularity_explicit,
+       -- Calculate average popularity for non-explicit tracks, using CASE to filter
+       AVG(CASE WHEN explicit = 'False' THEN popularity ELSE NULL END) AS avg_popularity_non_explicit,
+       -- Calculate the absolute difference in average popularity between explicit and non-explicit tracks
+       ABS(AVG(CASE WHEN explicit = 'True' THEN popularity ELSE NULL END) - 
+           AVG(CASE WHEN explicit = 'False' THEN popularity ELSE NULL END)) AS popularity_diff
+FROM tracks
+GROUP BY track_genre
+HAVING COUNT(*) > 0 -- Ensure that there are tracks in each genre by filtering out empty groups
+ORDER BY popularity_diff DESC
+LIMIT 10;
+
+
+
+-- 4. Comparison of Average Energy for High vs. Low Popularity Tracks by Genre
+
+
+-- INSERT OVERWRITE DIRECTORY 'CSC1109-Spotify-cleaning-and-analysis/outputs/energy_comparison_by_genre'
+-- ROW FORMAT DELIMITED
+-- FIELDS TERMINATED BY ','
+-- Select the track genre and average energy for high and low popularity tracks
+SELECT a.track_genre, AVG(a.energy) AS high_popular_avg_energy, AVG(b.energy) AS low_popular_avg_energy
+FROM tracks a
+JOIN tracks b ON a.track_genre = b.track_genre
+WHERE a.track_id != b.track_id AND a.popularity > 50 AND b.popularity <= 50 AND a.track_genre = b.track_genre -- Include only tracks with popularity > 50 for table a, table b will only have tracks with popularity <= 50
+GROUP BY a.track_genre
+ORDER BY AVG(a.popularity) DESC -- Order the results by the average popularity of high popularity tracks in descending order
+LIMIT 10; -- Get top 10 genres that high popularity tracks belong to
+
+
+-- 5.  Average Danceability of Genres with Tracks Having Popularity Greater Than 70
+
+
+-- INSERT OVERWRITE DIRECTORY 'CSC1109-Spotify-cleaning-and-analysis/outputs/danceability_comparison_by_genre'
+-- ROW FORMAT DELIMITED
+-- FIELDS TERMINATED BY ','
+SELECT track_genre,
+       AVG(danceability) AS avg_danceability
+FROM (
+    SELECT track_genre, danceability
+    FROM tracks
+    WHERE popularity > 70  -- Filter tracks with popularity greater than 70
+) AS filtered_tracks
+GROUP BY track_genre
+HAVING COUNT(*) > 5  -- Only include genres with more than 5 tracks
+ORDER BY avg_danceability DESC  -- Order by average danceability
+LIMIT 10;  -- Get the top 10 genres based on average danceability
+
+
+
+
+
+
+
+
+
+
+
