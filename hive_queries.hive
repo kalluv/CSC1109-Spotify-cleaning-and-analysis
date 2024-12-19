@@ -18,7 +18,7 @@ WITH SERDEPROPERTIES ("separatorChar" = ",", "quoteChar" = "\"")
 STORED AS TEXTFILE;
 
 
-LOAD DATA INPATH 'gs://csc1109/data/dataset.csv'
+LOAD DATA INPATH 'CSC1109-Spotify-cleaning-and-analysis/outputs/clean_tracks/data.csv'
 INTO TABLE tracks;
 
 ------------------------------------------------------------------------------------------------
@@ -26,9 +26,9 @@ INTO TABLE tracks;
 -- 1. Most Popular Genres Based on Average Popularity of Tracks
 
 
--- INSERT OVERWRITE DIRECTORY 'CSC1109-Spotify-cleaning-and-analysis/outputs/most_popular_genres' 
--- ROW FORMAT DELIMITED 
--- FIELDS TERMINATED BY ','
+INSERT OVERWRITE DIRECTORY 'CSC1109-Spotify-cleaning-and-analysis/outputs/most_popular_genres' 
+ROW FORMAT DELIMITED 
+FIELDS TERMINATED BY ','
 SELECT track_genre, AVG(popularity) AS max_popularity -- Select the genre of the track and the average popularity
 FROM tracks
 GROUP BY track_genre  -- Group the results by track genre
@@ -40,9 +40,9 @@ LIMIT 10; -- Limit the output to the top 10 genres
 -- 2.  Top 10 Solo Artists with the Most Tracks
 
 
--- INSERT OVERWRITE DIRECTORY 'CSC1109-Spotify-cleaning-and-analysis/outputs/solo_artists'
--- ROW FORMAT DELIMITED
--- FIELDS TERMINATED BY ','
+INSERT OVERWRITE DIRECTORY 'CSC1109-Spotify-cleaning-and-analysis/outputs/solo_artists'
+ROW FORMAT DELIMITED
+FIELDS TERMINATED BY ','
 SELECT artists, COUNT(*) AS track_count -- Select the solo artist names and count the number of tracks for each artist
 FROM tracks
 WHERE artists NOT LIKE '%;%'  -- Exclude multiple artists -- Exclude artists with a semicolon in their names, indicating multiple artists
@@ -55,9 +55,9 @@ LIMIT 10;
 -- 3. Genres with the Largest Difference Between Explicit and Non-Explicit Track Popularity
 
 
--- INSERT OVERWRITE DIRECTORY 'CSC1109-Spotify-cleaning-and-analysis/outputs/explicit_nonexplicit_diff_pop'
--- ROW FORMAT DELIMITED
--- FIELDS TERMINATED BY ','
+INSERT OVERWRITE DIRECTORY 'CSC1109-Spotify-cleaning-and-analysis/outputs/explicit_nonexplicit_diff_pop'
+ROW FORMAT DELIMITED
+FIELDS TERMINATED BY ','
 -- Select the track genre and calculate average popularity for explicit and non-explicit tracks
 SELECT track_genre,
        -- Calculate average popularity for explicit tracks, using CASE to filter
@@ -78,9 +78,9 @@ LIMIT 10;
 -- 4. Comparison of Average Energy for High vs. Low Popularity Tracks by Genre
 
 
--- INSERT OVERWRITE DIRECTORY 'CSC1109-Spotify-cleaning-and-analysis/outputs/energy_comparison_by_genre'
--- ROW FORMAT DELIMITED
--- FIELDS TERMINATED BY ','
+INSERT OVERWRITE DIRECTORY 'CSC1109-Spotify-cleaning-and-analysis/outputs/energy_comparison_by_genre'
+ROW FORMAT DELIMITED
+FIELDS TERMINATED BY ','
 -- Select the track genre and average energy for high and low popularity tracks
 SELECT a.track_genre, AVG(a.energy) AS high_popular_avg_energy, AVG(b.energy) AS low_popular_avg_energy
 FROM tracks a
@@ -94,9 +94,9 @@ LIMIT 10; -- Get top 10 genres that high popularity tracks belong to
 -- 5.  Average Danceability of Genres with Tracks Having Popularity Greater Than 70
 
 
--- INSERT OVERWRITE DIRECTORY 'CSC1109-Spotify-cleaning-and-analysis/outputs/danceability_comparison_by_genre'
--- ROW FORMAT DELIMITED
--- FIELDS TERMINATED BY ','
+INSERT OVERWRITE DIRECTORY 'CSC1109-Spotify-cleaning-and-analysis/outputs/danceability_comparison_by_genre'
+ROW FORMAT DELIMITED
+FIELDS TERMINATED BY ','
 SELECT track_genre,
        AVG(danceability) AS avg_danceability
 FROM (
